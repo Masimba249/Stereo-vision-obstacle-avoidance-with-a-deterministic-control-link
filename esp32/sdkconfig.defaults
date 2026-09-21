@@ -1,0 +1,40 @@
+# Defaults that matter for this project's real-time behaviour.
+# Anything not listed here is left at the IDF default on purpose.
+
+CONFIG_IDF_TARGET="esp32"
+
+# 1 kHz tick so vTaskDelayUntil in the comms tasks has 1 ms granularity.
+# The control loop does NOT depend on this - it is driven by esp_timer - but a
+# 100 Hz tick would make the comms tasks unnecessarily lumpy.
+CONFIG_FREERTOS_HZ=1000
+
+# Dispatch the control tick straight from the timer ISR. This is what keeps
+# scheduling jitter in the single-digit microseconds.
+CONFIG_ESP_TIMER_SUPPORTS_ISR_DISPATCH_METHOD=y
+
+# Both cores in use: control on core 1, comms on core 0.
+CONFIG_FREERTOS_UNICORE=n
+
+# Run at full speed; power management would introduce frequency-switch latency
+# straight into the control loop.
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_PM_ENABLE=n
+
+# Task watchdog on both cores, so a wedged control loop is fatal and visible
+# rather than silent.
+CONFIG_ESP_TASK_WDT_INIT=y
+CONFIG_ESP_TASK_WDT_TIMEOUT_S=5
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU0=y
+CONFIG_ESP_TASK_WDT_CHECK_IDLE_TASK_CPU1=n
+
+# Runtime stats, used by the stats task and the jitter report.
+CONFIG_FREERTOS_USE_TRACE_FACILITY=y
+CONFIG_FREERTOS_GENERATE_RUN_TIME_STATS=y
+CONFIG_FREERTOS_VTASKLIST_INCLUDE_COREID=y
+
+# Keep the log level useful without flooding the UART during the jitter runs.
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
+
+# TWAI ISR in IRAM so CAN receive latency does not depend on flash cache state.
+CONFIG_TWAI_ISR_IN_IRAM=y

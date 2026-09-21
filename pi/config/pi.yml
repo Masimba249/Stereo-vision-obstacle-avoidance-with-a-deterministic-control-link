@@ -1,0 +1,95 @@
+# Pi-side configuration for the stereo-link edge node.
+# Every field here maps to a dataclass in stereolink/config.py; anything you
+# leave out keeps the default from that file.
+
+camera:
+  # "v4l2" for the Waveshare binocular module, "synthetic" for the simulator.
+  source: v4l2
+  device: 0
+  # The module streams BOTH eyes in one frame, so capture_width is 2x the eye.
+  capture_width: 2560
+  capture_height: 720
+  fps: 30
+  fourcc: MJPG
+  swap_eyes: false
+  # Vision runs slower than capture on purpose: always take the newest frame
+  # and drop the backlog rather than processing a stale queue.
+  process_hz: 10.0
+
+stereo:
+  # The single biggest latency lever - see docs/latency-budget.md.
+  work_width: 640
+  work_height: 360
+  min_disparity: 0
+  num_disparities: 96      # must be a multiple of 16
+  block_size: 5
+  uniqueness_ratio: 10
+  speckle_window_size: 100
+  speckle_range: 2
+  disp12_max_diff: 1
+  pre_filter_cap: 31
+  mode: SGBM_3WAY
+  wls_filter: false        # needs opencv-contrib; ~6 ms at 640x360
+
+obstacle:
+  num_columns: 16
+  roi_top: 0.35            # ignore everything above this (ceiling/sky)
+  roi_bottom: 0.92         # ignore the chassis and the immediate ground
+  min_valid_px: 60
+  percentile: 12.0         # robust "nearest" per column, not the raw minimum
+  min_range_m: 0.25
+  max_range_m: 6.0
+  ground_reject_m: 0.08
+  camera_height_m: 0.16    # MUST match the real mounting height
+  temporal_alpha: 0.6
+
+planner:
+  v_cruise_mm_s: 700.0
+  v_min_mm_s: 120.0
+  stop_distance_m: 0.45
+  slow_distance_m: 1.60
+  clear_distance_m: 3.0
+  w_max_mrad_s: 2200.0
+  steer_gain: 2600.0
+  steer_slew_mrad_s2: 9000.0
+  vision_timeout_s: 0.5
+
+can:
+  interface: socketcan     # socketcan | virtual | loopback
+  channel: can0
+  bitrate: 500000
+  node_id: 0x22
+  send_sync: true
+  sync_hz: 10.0
+  heartbeat_timeout_s: 0.6
+  # Mirrors the firmware watchdog. The node will accept a TIGHTER value over
+  # RPDO2 but never a wider one.
+  setpoint_watchdog_ms: 150
+
+mqtt:
+  enabled: true
+  host: localhost
+  port: 1883
+  group_id: EdgeRobotics
+  edge_node_id: pi-stereo-01
+  device_id: esp32-drive
+  keepalive: 30
+  publish_hz: 5.0
+
+opcua:
+  enabled: false
+  endpoint: "opc.tcp://0.0.0.0:4840/stereolink/server/"
+  uri: "http://example.org/stereolink/"
+  name: "StereoLink Edge Server"
+  publish_hz: 5.0
+
+latency:
+  enabled: true
+  window: 600
+  report_path: reports/latency.json
+  markdown_path: reports/latency-budget.md
+  report_every_s: 30.0
+
+calibration_path: config/stereo_calibration.yml
+log_level: INFO
+preview: false

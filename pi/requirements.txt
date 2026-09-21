@@ -1,0 +1,17 @@
+# Core - required for the vision pipeline.
+numpy>=1.23
+opencv-python>=4.7          # opencv-contrib-python if you enable wls_filter
+PyYAML>=6.0
+
+# Fieldbus - required on the Pi; the in-process "loopback" transport and the
+# unit tests work without it, which is what keeps CI dependency-free.
+python-can>=4.2
+
+# North-bound (IT layer). Both are optional: if a package is missing the
+# corresponding publisher logs a warning and disables itself rather than
+# taking the robot down.
+paho-mqtt>=2.0              # MQTT / Sparkplug B
+asyncua>=1.0                # OPC UA server (successor to python-opcua)
+
+# Development.
+pytest>=7.0

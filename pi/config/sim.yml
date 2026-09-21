@@ -1,0 +1,36 @@
+# Desktop simulation: synthetic camera, in-process CAN, no broker.
+# Run with:  python3 -m stereolink.main --config config/sim.yml
+camera:
+  source: synthetic
+  capture_width: 1280      # 640 per eye after the split
+  capture_height: 720
+  fps: 30
+  process_hz: 10.0
+
+stereo:
+  work_width: 640
+  work_height: 360
+  num_disparities: 96
+  mode: SGBM_3WAY
+
+can:
+  interface: loopback
+  channel: sim
+  node_id: 0x22
+  send_sync: false
+  setpoint_watchdog_ms: 150
+
+mqtt:
+  enabled: false
+
+opcua:
+  enabled: false
+
+latency:
+  enabled: true
+  report_path: reports/latency.json
+  markdown_path: reports/latency-budget.md
+  report_every_s: 10.0
+
+calibration_path: config/stereo_calibration.example.yml
+log_level: INFO

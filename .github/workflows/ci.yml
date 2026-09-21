@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        # Deliberately NOT installing python-can, paho-mqtt or asyncua: the
+        # test suite must pass without them, which is what proves the optional
+        # dependencies really are optional and degrade gracefully.
+        run: |
+          python -m pip install --upgrade pip
+          pip install numpy opencv-python-headless PyYAML pytest
+
+      - name: Protocol definitions are in sync (C vs Python)
+        run: python pi/tools/check_protocol_sync.py
+
+      - name: Firmware logic tests (host build, no ESP-IDF)
+        run: make -C esp32/host_test test
+
+      - name: Python test suite
+        run: PYTHONPATH=pi python -m pytest pi/tests -q
+
+      - name: End-to-end failsafe demonstration
+        run: python pi/tools/demo_failsafe.py --run-s 2 --cut-s 2 --quiet
+
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build ESP32 firmware
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: v5.2
+          target: esp32
+          path: esp32

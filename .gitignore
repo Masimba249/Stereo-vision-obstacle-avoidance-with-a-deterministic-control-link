@@ -17,3 +17,31 @@ CMakeUserPresets.json
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #cmake-build-*
+
+# --- project specific ---
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# ESP-IDF build output
+esp32/build/
+esp32/build-*/
+esp32/sdkconfig
+esp32/sdkconfig.old
+esp32/managed_components/
+esp32/dependencies.lock
+
+# Host test binary
+esp32/host_test/test_firmware_logic
+
+# Generated at runtime. docs/latency-budget.md IS committed (it is a published
+# result); reports/ holds the raw data behind it and is not.
+reports/
+captures/
+
+# Real calibration is per-device and must not be committed; the example is.
+pi/config/stereo_calibration.yml
